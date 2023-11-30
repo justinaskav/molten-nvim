@@ -251,10 +251,21 @@ def to_outputchunk(
         if chunk is None:
             # handle arbitrary images
             for mimetype in data.keys():
+
+                # Original code in Python 3.10
+                """ 
                 match mimetype.split("/"):
                     case ["image", extension]:
                         chunk = _from_image(extension, data[mimetype])
                         break
+                """
+                
+                # Python 3.8
+                mimetype_parts = mimetype.split("/")
+                if len(mimetype_parts) == 2 and mimetype_parts[0] == "image":
+                    extension = mimetype_parts[1]
+                    chunk = _from_image(extension, data[mimetype])
+                    break
 
     if chunk is None:
         # fallback to plain text if there's nothing else

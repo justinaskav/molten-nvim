@@ -332,12 +332,21 @@ class OutputBuffer:
             )
             return border
 
+        # Original code in Python 3.10
+        """
         for i in range(len(border)):
             match border[i]:
                 case [str(_), *_]:
                     border[i][1] = hl
                 case str(_):
-                    border[i] = [border[i], hl]
+                    border[i] = [border[i], hl] 
+        """
+
+        # Python 3.8
+        if isinstance(border[i], list) and border[i]:
+            border[i][1] = hl
+        elif isinstance(border[i], str):
+            border[i] = [border[i], hl]
 
         return border
 
@@ -364,6 +373,9 @@ def handle_progress_bars(line_str: str) -> List[str]:
 
 def border_size(border: Union[str, List[str], List[List[str]]]):
     width, height = 0, 0
+
+    # Original code in Python 3.10
+    """ 
     match border:
         case list(b):
             height += border_char_size(1, b)
@@ -376,12 +388,38 @@ def border_size(border: Union[str, List[str], List[List[str]]]):
         case "shadow":
             height += 1
             width += 1
-    return width, height
+    """
+
+    # Python 3.8
+    if isinstance(border, list):
+        height += border_char_size(1, border)
+        height += border_char_size(5, border)
+        width += border_char_size(7, border)
+        width += border_char_size(3, border)
+    elif isinstance(border, str):
+        if border in ["rounded", "single", "double", "solid"]:
+            height += 2
+            width += 2
+        elif border == "shadow":
+            height += 1
+            width += 1
+    return width, height 
 
 
 def border_char_size(index: int, border: Union[List[str], List[List[str]]]):
+    
+    # Original code in Python 3.10
+    """ 
     match border[index % len(border)]:
         case str(ch) | [str(ch), _]:
             return len(ch)
         case _:
-            return 0
+            return 0 
+    """
+
+    # Python 3.8
+    current_border = border[index % len(border)]
+    if isinstance(current_border, str) or (isinstance(current_border, list) and len(current_border) > 0 and isinstance(current_border[0], str)):
+        return len(current_border)
+    else:
+        return 0

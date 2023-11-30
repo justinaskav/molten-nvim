@@ -391,7 +391,10 @@ class Molten:
         all_cells = self._get_sorted_buf_cells(kernels, bufnr)
 
         starting_index = None
-        match all_cells:
+
+        # Original code in Python 3.10
+        """ 
+            match all_cells:
             case [first, *_] if pos < first.begin:
                 starting_index = 0
                 if count > 0:
@@ -405,7 +408,22 @@ class Molten:
                     if pos in cell or (
                         i <= len(all_cells) - 2 and pos < all_cells[i + 1].begin and cell.end < pos
                     ):
-                        starting_index = i
+                        starting_index = i 
+        """
+
+        # Python 3.8
+        if any(pos < first.begin for first, *_ in [all_cells]):
+            starting_index = 0
+            if count > 0:
+                count -= 1
+        elif any(last.end < pos for *_ , last in [all_cells]):
+            starting_index = len(all_cells) - 1
+            if count < 0:
+                count += 1
+        else:
+            for i, cell in enumerate(all_cells):
+                if pos in cell or (i <= len(all_cells) - 2 and pos < all_cells[i + 1].begin and cell.end < pos):
+                    starting_index = i
 
         if starting_index is not None:
             target_idx = (starting_index + count) % len(all_cells)
