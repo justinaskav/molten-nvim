@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.1.6](https://github.com/benlubas/molten-nvim/compare/v1.1.5...v1.1.6) (2023-12-10)
+
+
+### Bug Fixes
+
+* don't delete running cells ([#75](https://github.com/benlubas/molten-nvim/issues/75)) ([6b2660d](https://github.com/benlubas/molten-nvim/commit/6b2660d790696dc41238b3bca19541e347e27bf2))
+* progress bars in virtual text ([#77](https://github.com/benlubas/molten-nvim/issues/77)) ([3b886c1](https://github.com/benlubas/molten-nvim/commit/3b886c1e987ee9d2654e31f9d0a1234fce8bcb92))
+* remove orphaned cells ([#73](https://github.com/benlubas/molten-nvim/issues/73)) ([b500515](https://github.com/benlubas/molten-nvim/commit/b5005158ddb16fd9c864de957eef92eca9ab1d72))
+
+## [1.1.5](https://github.com/benlubas/molten-nvim/compare/v1.1.4...v1.1.5) (2023-11-30)
+
+
+### Bug Fixes
+
+* duplicate virt text/virt text wrap ([#70](https://github.com/benlubas/molten-nvim/issues/70)) ([71faa0d](https://github.com/benlubas/molten-nvim/commit/71faa0d98ee6aea2167f69d9c6c67ccab1571c14))
+* healthcheck on python 3.11+ ([#65](https://github.com/benlubas/molten-nvim/issues/65)) ([523d0ec](https://github.com/benlubas/molten-nvim/commit/523d0eceb3349c8deb798f52c2d827fbfdd44668))
+* truncate output text ([#67](https://github.com/benlubas/molten-nvim/issues/67)) ([3141b93](https://github.com/benlubas/molten-nvim/commit/3141b936ee69f15f3a926b122d110b0940e152e0))
+
 ## [1.1.4](https://github.com/benlubas/molten-nvim/compare/v1.1.3...v1.1.4) (2023-11-26)
 
 

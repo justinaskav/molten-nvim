@@ -32,6 +32,7 @@ class OutputChunk(ABC):
         self,
         bufnr: int,
         options: MoltenOptions,
+        col: int,
         lineno: int,
         shape: Tuple[int, int, int, int],
         canvas: Canvas,
@@ -61,7 +62,8 @@ class TextOutputChunk(OutputChunk):
         self,
         _bufnr: int,
         options: MoltenOptions,
-        _: int,
+        col: int,
+        _lineno: int,
         shape: Tuple[int, int, int, int],
         _canvas: Canvas,
         hard_wrap: bool,
@@ -73,11 +75,20 @@ class TextOutputChunk(OutputChunk):
             if hard_wrap:
                 lines = []
                 splits = []
+                # Assume this is a progress bar, or similar, we shouldn't try to wrap it
+                if text.find("\r") != -1:
+                    return text, 0
                 for line in text.split("\n"):
-                    for i in range(len(line) // win_width):
-                        splits.append(line[i * win_width : win_width])
+                    index = 0
+                    if len(line) + col > win_width:
+                        splits.append(line[: win_width - col])
+                        line = line[win_width - col :]
+
+                    for _ in range(len(line) // win_width):
+                        splits.append(line[index * win_width : (index + 1) * win_width])
+                        index += 1
                     else:
-                        splits.append(line)
+                        splits.append(line[index * win_width :])
                 lines.extend(splits)
                 text = "\n".join(lines)
             else:
@@ -132,6 +143,7 @@ class ImageOutputChunk(OutputChunk):
         self,
         bufnr: int,
         _: MoltenOptions,
+        col: int,
         lineno: int,
         _shape: Tuple[int, int, int, int],
         canvas: Canvas,

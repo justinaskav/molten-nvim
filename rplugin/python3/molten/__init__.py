@@ -330,12 +330,14 @@ class Molten:
 
         code = span.get_text(self.nvim)
 
-        kernel.run_code(code, span)
         # delete overlapping cells from other kernels. Maintains the invariant that all code cells
         # from different kernels are disjoint
         for k in kernels:
             if k.kernel_id != kernel.kernel_id:
-                k.delete_overlapping_cells(span)
+                if not k.try_delete_overlapping_cells(span):
+                    return
+
+        kernel.run_code(code, span)
 
     @pynvim.function("MoltenUpdateOption", sync=True)  # type: ignore
     @nvimui  # type: ignore
@@ -664,7 +666,7 @@ class Molten:
 
         for molten in molten_kernels:
             if molten.current_output is not None:
-                molten.delete_cell()
+                molten.delete_current_cell()
                 return
 
     @pynvim.command("MoltenShowOutput", nargs=0, sync=True)  # type: ignore
@@ -719,7 +721,9 @@ class Molten:
         if len(args) > 1:
             kernel = args[1]
         else:
-            self.kernel_check(f"MoltenExportOutput{'!' if bang else ''}", path, buf, kernel_last=True)
+            self.kernel_check(
+                f"MoltenExportOutput{'!' if bang else ''}", path, buf, kernel_last=True
+            )
             return
 
         kernels = self._get_current_buf_kernels(True)
