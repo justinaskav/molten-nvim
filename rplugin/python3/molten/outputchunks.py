@@ -37,6 +37,7 @@ class OutputChunk(ABC):
         shape: Tuple[int, int, int, int],
         canvas: Canvas,
         hard_wrap: bool,
+        winnr: int | None = None,
     ) -> Tuple[str, int]:
         pass
 
@@ -58,6 +59,9 @@ class TextOutputChunk(OutputChunk):
         self.text = text
         self.output_type = "display_data"
 
+    def __repr__(self) -> str:
+        return f"TextOutputChunk(\"{self.text}\")"
+
     def place(
         self,
         _bufnr: int,
@@ -67,6 +71,7 @@ class TextOutputChunk(OutputChunk):
         shape: Tuple[int, int, int, int],
         _canvas: Canvas,
         hard_wrap: bool,
+        winnr: int | None = None,
     ) -> Tuple[str, int]:
         text = clean_up_text(self.text)
         extra_lines = 0
@@ -87,8 +92,8 @@ class TextOutputChunk(OutputChunk):
                     for _ in range(len(line) // win_width):
                         splits.append(line[index * win_width : (index + 1) * win_width])
                         index += 1
-                    else:
-                        splits.append(line[index * win_width :])
+                    splits.append(line[index * win_width :])
+
                 lines.extend(splits)
                 text = "\n".join(lines)
             else:
@@ -148,6 +153,7 @@ class ImageOutputChunk(OutputChunk):
         _shape: Tuple[int, int, int, int],
         canvas: Canvas,
         virtual: bool,
+        winnr: int | None = None,
     ) -> Tuple[str, int]:
         self.img_identifier = canvas.add_image(
             self.img_path,
@@ -155,6 +161,7 @@ class ImageOutputChunk(OutputChunk):
             x=0,
             y=lineno + 1,
             bufnr=bufnr,
+            winnr=winnr,
         )
         return "", canvas.img_size(self.img_identifier)["height"]
 
@@ -183,6 +190,20 @@ class Output:
 
         self._should_clear = False
 
+    def merge_text_chunks(self):
+        """Merge the last two chunks if they are text chunks, and text on a line before \r
+        character, this is b/c outputs before a \r aren't shown, and so, should be deleted"""
+        if (
+            len(self.chunks) >= 2
+                and isinstance((c1 := self.chunks[-2]), TextOutputChunk)
+                and isinstance((c2 := self.chunks[-1]), TextOutputChunk)
+        ):
+            c1.text += c2.text
+            c1.text = "\n".join([re.sub(r".*\r", "", x) for x in c1.text.split("\n")[:-1]])
+            c1.jupyter_data = { "text/plain": c1.text }
+            self.chunks.pop()
+        elif len(self.chunks) > 0 and isinstance((c1 := self.chunks[0]), TextOutputChunk):
+            c1.text = "\n".join([re.sub(r".*\r", "", x) for x in c1.text.split("\n")[:-1]])
 
 def to_outputchunk(
     nvim: Nvim,

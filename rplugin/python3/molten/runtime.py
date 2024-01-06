@@ -31,8 +31,8 @@ class JupyterRuntime:
     state: RuntimeState
     kernel_name: str
 
-    kernel_manager: jupyter_client.KernelManager
-    kernel_client: jupyter_client.KernelClient
+    kernel_manager: jupyter_client.KernelManager  # type: ignore
+    kernel_client: jupyter_client.KernelClient  # type: ignore
 
     allocated_files: List[str]
 
@@ -108,9 +108,10 @@ class JupyterRuntime:
             output.chunks.append(MimetypesOutputChunk(list(data.keys())))
 
         if output.success:
-            output.chunks.append(
-                to_outputchunk(self.nvim, self._alloc_file, data, metadata, self.options)
-            )
+            chunk = to_outputchunk(self.nvim, self._alloc_file, data, metadata, self.options)
+            output.chunks.append(chunk)
+            if isinstance(chunk, TextOutputChunk) and chunk.text.startswith("\r"):
+                output.merge_text_chunks()
 
     def _tick_one(self, output: Output, message_type: str, content: Dict[str, Any]) -> bool:
         def copy_on_demand(content_ctor):
@@ -167,10 +168,7 @@ class JupyterRuntime:
             return True
         elif message_type == "stream":
             copy_on_demand(content["text"])
-            chunk = TextOutputChunk(content["text"])
-            chunk.jupyter_data = {"text/plain": content["text"]}
-            chunk.jupyter_metadata = {}
-            output.chunks.append(chunk)
+            self._append_chunk(output, {"text/plain": content["text"]}, {})
             return True
         elif message_type == "display_data":
             # XXX: consider content['transient'], if we end up saving execution
@@ -228,4 +226,4 @@ class JupyterRuntime:
 
 
 def get_available_kernels() -> List[str]:
-    return list(jupyter_client.kernelspec.find_kernel_specs().keys())
+    return list(jupyter_client.kernelspec.find_kernel_specs().keys())  # type: ignore
